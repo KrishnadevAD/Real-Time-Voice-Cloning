@@ -14,8 +14,8 @@ if __name__ == "__main__":
                     "Ideally, you should have all three. You should extract them as they are "
                     "after having downloaded them and put them in a same directory, e.g.:\n"
                     "-[datasets_root]\n"
-                    "  -LibriSpeech\n"
-                    "    -train-other-500\n"
+                    "  -nepali_encoder\n"
+                    "    -train\n"
                     "  -VoxCeleb1\n"
                     "    -wav\n"
                     "    -vox1_meta.csv\n"
@@ -60,7 +60,7 @@ if __name__ == "__main__":
     # Preprocess the datasets
     print_args(args, parser)
     preprocess_func = {
-        "librispeech_other": preprocess_librispeech,
+        "nepali_dataset": preprocess_librispeech,
         "voxceleb1": preprocess_voxceleb1,
         "voxceleb2": preprocess_voxceleb2,
     }
