@@ -3,6 +3,7 @@ from torch.utils.data import DataLoader
 from synthesizer.hparams import hparams_debug_string
 from synthesizer.synthesizer_dataset import SynthesizerDataset, collate_synthesizer
 from synthesizer.models.tacotron import Tacotron
+from synthesizer.utils import data_parallel_workaround
 from synthesizer.utils.text import text_to_sequence
 from synthesizer.utils.symbols import symbols
 import numpy as np
@@ -12,9 +13,8 @@ from tqdm import tqdm
 
 def run_synthesis(in_dir, out_dir, model_dir, hparams):
     # This generates ground truth-aligned mels for vocoder training
-    synth_dir = Path(out_dir).joinpath("mels_gta")
+    synth_dir = Path(out_dir).joinpath("mel_gta")
     synth_dir.mkdir(exist_ok=True)
-    print(hparams_debug_string(hparams))
 
     # Check for GPU
     if torch.cuda.is_available():
@@ -60,7 +60,7 @@ def run_synthesis(in_dir, out_dir, model_dir, hparams):
     mel_dir = in_dir.joinpath("mels")
     embed_dir = in_dir.joinpath("embeds")
 
-    dataset = SynthesizerDataset(metadata_fpath, mel_dir, embed_dir, hparams)
+    dataset = SynthesizerDataset(metadata_fpath, mel_dir, embed_dir)
     data_loader = DataLoader(dataset,
                              collate_fn=lambda batch: collate_synthesizer(batch, r),
                              batch_size=hparams.synthesis_batch_size,
@@ -68,19 +68,20 @@ def run_synthesis(in_dir, out_dir, model_dir, hparams):
                              shuffle=False,
                              pin_memory=True)
 
+
     # Generate GTA mels
     meta_out_fpath = Path(out_dir).joinpath("synthesized.txt")
+
     with open(meta_out_fpath, "w") as file:
         for i, (texts, mels, embeds, idx) in tqdm(enumerate(data_loader), total=len(data_loader)):
             texts = texts.to(device)
             mels = mels.to(device)
             embeds = embeds.to(device)
-
             # Parallelize model onto GPUS using workaround due to python bug
             if device.type == "cuda" and torch.cuda.device_count() > 1:
                 _, mels_out, _ = data_parallel_workaround(model, texts, mels, embeds)
             else:
-                _, mels_out, _ = model(texts, mels, embeds)
+                _, mels_out, _ ,_= model(texts, mels, embeds)
 
             for j, k in enumerate(idx):
                 # Note: outputs mel-spectrogram files and target ones have same names, just different folders

@@ -3,10 +3,10 @@ from torch.utils.data import Dataset
 import numpy as np
 from pathlib import Path
 from synthesizer.utils.text import text_to_sequence
-
+from synthesizer.hparams import hparams
 
 class SynthesizerDataset(Dataset):
-    def __init__(self, metadata_fpath: Path, mel_dir: Path, embed_dir: Path, hparams):
+    def __init__(self, metadata_fpath: Path, mel_dir: Path, embed_dir: Path):
         print("Using inputs from:\n\t%s\n\t%s\n\t%s" % (metadata_fpath, mel_dir, embed_dir))
         
         with metadata_fpath.open("r") as metadata_file:
@@ -47,7 +47,7 @@ class SynthesizerDataset(Dataset):
         return len(self.samples_fpaths)
 
 
-def collate_synthesizer(batch, r, hparams):
+def collate_synthesizer(batch, r):
     # Text
     x_lens = [len(x[0]) for x in batch]
     max_x_len = max(x_lens)
@@ -89,4 +89,4 @@ def pad1d(x, max_len, pad_value=0):
     return np.pad(x, (0, max_len - len(x)), mode="constant", constant_values=pad_value)
 
 def pad2d(x, max_len, pad_value=0):
-    return np.pad(x, ((0, 0), (0, max_len - x.shape[-1])), mode="constant", constant_values=pad_value)
+    return np.pad(x, ((0, 0),(0,0),(0, max_len - x.shape[-1])), mode="constant", constant_values=pad_value)
