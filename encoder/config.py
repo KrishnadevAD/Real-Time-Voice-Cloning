@@ -1,7 +1,7 @@
 librispeech_datasets = {
     "train": {
         "clean": ["LibriSpeech/train-clean-100", "LibriSpeech/train-clean-360"],
-        "other": ["LibriSpeech/train-other-500"]
+        "other": ["nepali_encoder/train"]
     },
     "test": {
         "clean": ["LibriSpeech/test-clean"],
